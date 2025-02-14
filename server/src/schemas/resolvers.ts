@@ -2,13 +2,10 @@ import { User } from '../models/index.js'
 import { signToken, AuthenticationError } from '../services/auth.js';
 
 interface AddUserArgs {
-    input: {
-          _id: string;
           username: string;
           email: string;
           password: string;
-    }
-}
+        }
 
 interface LoginUserArgs {
     email: string;
@@ -17,14 +14,8 @@ interface LoginUserArgs {
 
 interface AddBookArgs {
     userId: string;
-    bookInfo: {
-        bookId: string;
-        title: string;
-        authors: string[];
-        description: string;
-        image: string;
-        link: string;
-    }
+    bookId: string;
+    
 }
 
 interface RemoveBookArgs {
@@ -44,6 +35,7 @@ const resolvers = {
         },
         me: async (_parent: any, _args: any, context: any) => {
             if (context.user) {
+                console.log('hit-me')
                 return User.findOne({ _id: context.user._id }).populate('savedBooks');
             }
 
@@ -54,15 +46,16 @@ const resolvers = {
 
         // user mutations
 
-        addUser: async (_parent: any, { input }: AddUserArgs) => {
-
-            const user = await User.create({...input});
-            const token = signToken(input);
+        addUser: async (_parent: any, { username, email, password }: AddUserArgs) => {
+            console.log(username, email, password);
+            const user = await User.create({username, email, password});
+            const token = signToken({username: user.username, email: user.email, _id: user._id});
 
             return { token, user }
         },
 
         login: async (_parent: any, { email, password }: LoginUserArgs) => {
+            console.log(email, password);
             //find user
             const user = await User.findOne({ email });
             //throw error if none
@@ -78,18 +71,19 @@ const resolvers = {
             //extract jwt compatible info
             //get token
             const tokenKey = {username: user.username, email: user.email, _id: user.id}
-            const token = signToken(tokenKey);
+            console.log('tokenKey:', tokenKey);
+            const token = signToken({username: user.username, email: user.email, _id: user._id});
             //give token and user data
             return { token, user };
         },
 
         // book mutations
 
-        addBook: async (_parent: any, { userId, bookInfo }: AddBookArgs) => {
+        addBook: async (_parent: any, { userId, bookId }: AddBookArgs) => {
             return await User.findOneAndUpdate(
                 { _id: userId },
                 {
-                    $addToSet: { savedBooks: bookInfo }
+                    $addToSet: { savedBooks: bookId }
                 },
                 {
                     new: true,

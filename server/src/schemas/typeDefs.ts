@@ -16,15 +16,9 @@ const typeDefs = `
     image: String
     link: String
  }
-
- input UserInput {
-    username: String!
-    email: String!
-    password: String!
-  }
   
   type Auth {
-    token: ID!
+    token: String!
     user: User
   }
 
@@ -35,7 +29,7 @@ const typeDefs = `
   }
 
   type Mutation {
-    addUser(input: UserInput!): Auth
+    addUser(username: String!, email: String!, password: String!): Auth
     login(email: String!, password: String!): Auth
     addBook(userId: String!, bookId: String!): User
     removeBook(userId: String!, bookId: String!): User
